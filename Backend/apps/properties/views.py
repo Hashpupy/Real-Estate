@@ -67,15 +67,16 @@ class NearbyPropertiesView(generics.ListAPIView):
         latitude = self.request.query_params.get('lat')
         longitude = self.request.query_params.get('lng')
         radius = self.request.query_params.get('radius', 10)  # Default 10km
-        
+
         if not latitude or not longitude:
             return Property.objects.none()
-        
+
         user_location = Point(float(longitude), float(latitude), srid=4326)
         return Property.objects.filter(
             location__distance_lte=(user_location, Distance(km=radius))
-            .annotate(distance=DistanceFunc('location', user_location))
-            .order_by('distance')
+        ).annotate(
+            distance=DistanceFunc('location', user_location)
+        ).order_by('distance')
 
 class PropertyTypeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = PropertyType.objects.all()
